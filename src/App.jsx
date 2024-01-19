@@ -1,8 +1,7 @@
 import React, { useState, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
-import PDFDocument from "pdfkit";
-import blobStream from "blob-stream";
 import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 const App = () => {
   const [agreementName, setAgreementName] = useState("");
@@ -39,22 +38,16 @@ const App = () => {
   const generatePDF = (file) => {
     const doc = new jsPDF();
 
-    // Tambahkan konten ke PDF, misalnya judul
     doc.text(agreementName || "Default", 10, 10);
 
-    // Tambahkan file asli ke PDF menggunakan PDFKit
-    const stream = doc.pipe(blobStream());
-
-    const data = new Uint8Array(await file.content.arrayBuffer());
-    const originalPdfDoc = new PDFDocument();
-    originalPdfDoc.pipe(stream);
-    originalPdfDoc.end(data);
-
-    stream.on("finish", () => {
-      doc.addPage();
-      doc.image(stream.toBlobURL("application/pdf"), 10, 30, 190, 160);
-      doc.save(`${file.customName || file.name}.pdf`);
+    const tableData = fileList.map((item) => [item.name, item.customName]);
+    doc.autoTable({
+      head: [["File Name", "Custom Name"]],
+      body: tableData,
     });
+
+    // Simpan atau unduh PDF
+    doc.save(`${file.customName || file.name}.pdf`);
   };
 
   return (
