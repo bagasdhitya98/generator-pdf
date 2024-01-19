@@ -1,7 +1,6 @@
 import React, { useState, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
 
 const App = () => {
   const [agreementName, setAgreementName] = useState("");
@@ -41,16 +40,15 @@ const App = () => {
     // Tambahkan konten ke PDF, misalnya judul
     doc.text(agreementName || "Default", 10, 10);
 
-    // Tambahkan tabel atau konten lainnya sesuai kebutuhan
-    // Misalnya, menambahkan tabel dari jspdf-autotable
-    const tableData = fileList.map((item) => [item.name, item.customName]);
-    doc.autoTable({
-      head: [["File Name", "Custom Name"]],
-      body: tableData,
-    });
+    // Tambahkan file asli ke PDF
+    const reader = new FileReader();
+    reader.readAsDataURL(file.content);
 
-    // Simpan atau unduh PDF
-    doc.save(`${file.customName || file.name}.pdf`);
+    reader.onloadend = () => {
+      const contentBase64 = reader.result.split(",")[1];
+      doc.addImage(contentBase64, "JPEG", 15, 40, 180, 160);
+      doc.save(`${file.customName || file.name}.pdf`);
+    };
   };
 
   return (
