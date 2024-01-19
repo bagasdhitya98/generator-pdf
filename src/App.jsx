@@ -1,9 +1,9 @@
 import React, { useState, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { pdfMake } from "pdfmake/build/pdfmake";
-import { vfs } from "pdfmake/build/vfs_fonts";
+import pdfMake from "pdfmake/build/pdfmake";
+import pdfFonts from "pdfmake/build/vfs_fonts";
 
-pdfMake.vfs = vfs;
+pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
 const App = () => {
   const [agreementName, setAgreementName] = useState("");
