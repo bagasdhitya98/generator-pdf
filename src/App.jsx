@@ -1,5 +1,7 @@
 import React, { useState, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
+import PDFDocument from "pdfkit";
+import blobStream from "blob-stream";
 import jsPDF from "jspdf";
 
 const App = () => {
@@ -40,15 +42,19 @@ const App = () => {
     // Tambahkan konten ke PDF, misalnya judul
     doc.text(agreementName || "Default", 10, 10);
 
-    // Tambahkan file asli ke PDF
-    const reader = new FileReader();
-    reader.readAsDataURL(file.content);
+    // Tambahkan file asli ke PDF menggunakan PDFKit
+    const stream = doc.pipe(blobStream());
 
-    reader.onloadend = () => {
-      const contentBase64 = reader.result.split(",")[1];
-      doc.addImage(contentBase64, "JPEG", 15, 40, 180, 160);
+    const data = new Uint8Array(await file.content.arrayBuffer());
+    const originalPdfDoc = new PDFDocument();
+    originalPdfDoc.pipe(stream);
+    originalPdfDoc.end(data);
+
+    stream.on("finish", () => {
+      doc.addPage();
+      doc.image(stream.toBlobURL("application/pdf"), 10, 30, 190, 160);
       doc.save(`${file.customName || file.name}.pdf`);
-    };
+    });
   };
 
   return (

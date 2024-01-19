@@ -10,8 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "blob-stream": "^0.1.3",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.8.1",
+    "pdfkit": "^0.14.0",
     "pdfmake": "^0.1.72",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
