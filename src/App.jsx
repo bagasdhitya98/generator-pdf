@@ -1,20 +1,12 @@
 import React, { useState, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
-import pdfMake from "pdfmake/build/pdfmake";
-import pdfFonts from "pdfmake/build/vfs_fonts";
-
-const pdfFontsPromise = import("pdfmake/build/vfs_fonts");
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 const App = () => {
   const [agreementName, setAgreementName] = useState("");
   const [fileList, setFileList] = useState([]);
   const fileInputRef = useRef(null);
-
-  useEffect(() => {
-    pdfFontsPromise.then((pdfFonts) => {
-      pdfMake.vfs = pdfFonts.pdfMake.vfs;
-    });
-  }, []);
 
   const handleNameChange = (e, fileId) => {
     const updatedFileList = fileList.map((file) =>
@@ -44,27 +36,25 @@ const App = () => {
   };
 
   const generatePDF = (file) => {
-    const documentDefinition = {
-      content: [
-        {
-          text: `${agreementName || "Default"}`,
-          fontSize: 16,
-          bold: true,
-        },
-      ],
-    };
-    pdfMake
-      .createPdf(documentDefinition)
-      .download(`${file.customName || file.name}.pdf`);
+    const doc = new jsPDF();
+
+    // Tambahkan konten ke PDF, misalnya judul
+    doc.text(agreementName || "Default", 10, 10);
+
+    // Tambahkan tabel atau konten lainnya sesuai kebutuhan
+    // Misalnya, menambahkan tabel dari jspdf-autotable
+    const tableData = fileList.map((item) => [item.name, item.customName]);
+    doc.autoTable({
+      head: [["File Name", "Custom Name"]],
+      body: tableData,
+    });
+
+    // Simpan atau unduh PDF
+    doc.save(`${file.customName || file.name}.pdf`);
   };
 
   return (
     <section className="w-screen h-full flex flex-col justify-center items-center relative">
-      <div className="w-screen bg-cyan-500 h-40 border flex justify-center items-center rounded-br-full rounded-bl-full fixed top-0">
-        <p className="text-white text-2xl font-semibold lg:text-justify md:text-justify sm:text-justify text-center">
-          Effortlessly Generate Custom PDFs – Your Document, Your Way!
-        </p>
-      </div>
       <p className="text-cyan-700 font-semibold text-2xl mt-5 mb-8 lg:text-justify md:text-justify sm:text-justify text-center">
         Nanti upload dulu filenya, baru dirubah namanya terus tinggal download
         deh!
