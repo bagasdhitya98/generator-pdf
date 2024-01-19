@@ -1,8 +1,8 @@
 import React, { useState, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
 import pdfMake from "pdfmake/build/pdfmake";
+import pdfFonts from "pdfmake/build/vfs_fonts";
 
-const pdfFonts = require("pdfmake/build/vfs_fonts");
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
 const App = () => {
