@@ -1,9 +1,9 @@
 import React, { useState, useRef } from "react";
-import pdfMake from "pdfmake/build/pdfmake";
-import pdfFonts from "pdfmake/build/vfs_fonts";
 import { v4 as uuidv4 } from "uuid";
+import { pdfMake } from "pdfmake/build/pdfmake";
+import { vfs } from "pdfmake/build/vfs_fonts";
 
-pdfMake.vfs = pdfFonts?.pdfMake?.vfs;
+pdfMake.vfs = vfs;
 
 const App = () => {
   const [agreementName, setAgreementName] = useState("");
@@ -84,7 +84,7 @@ const App = () => {
           <input
             className="p-2 bg-white rounded-md border flex-grow md:w-40"
             type="text"
-            placeholder="Nama Kustom"
+            placeholder="Tulis nama file ..."
             value={file.customName}
             onChange={(e) => handleNameChange(e, file.id)}
           />
