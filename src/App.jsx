@@ -1,55 +1,59 @@
 import React, { useState, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
-import jsPDF from "jspdf";
+import { PDFDocument } from "pdf-lib";
+import saveAs from "file-saver";
 
 const App = () => {
   const [fileList, setFileList] = useState([]);
-  const fileInputRef = useRef(null);
-
-  const handleNameChange = (e, fileId) => {
-    const updatedFileList = fileList.map((file) =>
-      file.id === fileId ? { ...file, customName: e.target.value } : file
-    );
-    setFileList(updatedFileList);
-  };
+  const fileInputRefs = useRef([]);
 
   const handleFileUpload = (e) => {
     const files = e.target.files;
-
     const newFiles = Array.from(files).map((file) => ({
-      id: uuidv4(),
+      id: uuidv4(), // Generate unique ID for each file
       name: file.name,
       customName: "",
       content: file,
     }));
-
     setFileList((prevList) => [...prevList, ...newFiles]);
     resetFileInput();
   };
 
   const resetFileInput = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+    fileInputRefs.current.forEach((ref) => {
+      if (ref.current) {
+        ref.current.value = "";
+      }
+    });
   };
 
   const generatePDF = async (file) => {
-    const doc = new jsPDF();
-
-    // Tambahkan file asli ke PDF
-    const data = new Uint8Array(await file.content.arrayBuffer());
-    const blobUrl = URL.createObjectURL(
-      new Blob([data], { type: "application/pdf" })
+    const pdfDoc = await PDFDocument.create();
+    const content = await fetch(URL.createObjectURL(file.content)).then((res) =>
+      res.arrayBuffer()
     );
+    const originalPdf = await PDFDocument.load(content);
 
-    doc.addImage(blobUrl, "JPEG", 10, 10, 190, 260);
+    const copiedPages = await pdfDoc.copyPages(
+      originalPdf,
+      originalPdf.getPageIndices()
+    );
+    copiedPages.forEach((page) => pdfDoc.addPage(page));
 
-    // Simpan atau unduh PDF
-    doc.save(`${file.customName || file.name}.pdf`);
+    const pdfBytes = await pdfDoc.save();
+
+    // Save or download the PDF using file-saver
+    const pdfBlob = new Blob([pdfBytes], { type: "application/pdf" });
+    saveAs(pdfBlob, `${file.customName || file.name}.pdf`);
   };
 
   return (
     <section className="w-screen h-full flex flex-col justify-center items-center relative">
+      <div className="w-screen bg-cyan-500 h-40 border flex justify-center items-center rounded-br-full rounded-bl-full fixed top-0">
+        <p className="text-white text-2xl font-semibold lg:text-justify md:text-justify sm:text-justify text-center">
+          Effortlessly Generate Custom PDFs – Your Document, Your Way!
+        </p>
+      </div>
       <p className="text-cyan-700 font-semibold text-2xl mt-5 mb-8 lg:text-justify md:text-justify sm:text-justify text-center">
         Nanti upload dulu filenya, baru dirubah namanya terus tinggal download
         deh!
@@ -58,7 +62,7 @@ const App = () => {
         <div className="flex flex-col space-y-2">
           <label>Unggah File: </label>
           <input
-            ref={fileInputRef}
+            ref={(ref) => (fileInputRefs.current[0] = ref)}
             type="file"
             onChange={handleFileUpload}
             multiple
@@ -77,7 +81,13 @@ const App = () => {
             type="text"
             placeholder="Tulis nama file ..."
             value={file.customName}
-            onChange={(e) => handleNameChange(e, file.id)}
+            onChange={(e) =>
+              setFileList((prevList) =>
+                prevList.map((f) =>
+                  f.id === file.id ? { ...f, customName: e.target.value } : f
+                )
+              )
+            }
           />
           <button
             className="bg-cyan-300 hover:bg-cyan-500 focus:outline-none border-none text-white"
