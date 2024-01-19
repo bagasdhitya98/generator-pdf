@@ -1,10 +1,8 @@
 import React, { useState, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
 
 const App = () => {
-  const [agreementName, setAgreementName] = useState("");
   const [fileList, setFileList] = useState([]);
   const fileInputRef = useRef(null);
 
@@ -35,16 +33,16 @@ const App = () => {
     }
   };
 
-  const generatePDF = (file) => {
+  const generatePDF = async (file) => {
     const doc = new jsPDF();
 
-    doc.text(agreementName || "Default", 10, 10);
+    // Tambahkan file asli ke PDF
+    const data = new Uint8Array(await file.content.arrayBuffer());
+    const blobUrl = URL.createObjectURL(
+      new Blob([data], { type: "application/pdf" })
+    );
 
-    const tableData = fileList.map((item) => [item.name, item.customName]);
-    doc.autoTable({
-      head: [["File Name", "Custom Name"]],
-      body: tableData,
-    });
+    doc.addImage(blobUrl, "JPEG", 10, 10, 190, 260);
 
     // Simpan atau unduh PDF
     doc.save(`${file.customName || file.name}.pdf`);
